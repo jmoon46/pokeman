@@ -12,17 +12,28 @@ class Pokeman {
     console.log(this.name + ' used ' + this.skills[selectedSkillIndex - 1].name);
 
     if (target != null) {
-      target.takeDamage(this.skills[selectedSkillIndex - 1]);
+      target.takeDamage(this.skills[selectedSkillIndex - 1], this);
     };
   }
 
-  takeDamage(skill) {
-    this.attributes["hp"] -= skill.damage;
+  takeDamage(skill, skillUser) {
+    let modifier = 1;
+    let finalDamage;
+    // for each type (of user) check if the target pokemon type is in the strengths or weaknesses array of the skill (then change modifier to 2 or .5)
+    if (skill.attributeModifier === 'spec') {
+      finalDamage = (((((this.level * 2) + 2) * skill.power * (skillUser.attributes.attack / this.attributes.defense)) / 50) + 2) * modifier;
+    } else if (skill.attributeModifier === 'phys') {
+      finalDamage = (((((this.level * 2) + 2) * skill.power * (skillUser.attributes.specialAttack / this.attributes.specialDefense)) / 50) + 2) * modifier;
+    }
+  
+    finalDamage = Math.round(finalDamage);
+    this.attributes["hp"] -= finalDamage;
+
     if (this.attributes["hp"] <= 0) {
       console.log(this.name + " fainted!");
       return
     }
-    console.log(this.name + " took " + skill.damage.toString() + " damage. " + this.name + " has " + this.attributes["hp"] + " health left.");
+    console.log(this.name + " took " + finalDamage.toString() + " damage. " + this.name + " has " + this.attributes["hp"] + " health left.");
   }
 
   learnSkill(newSkill, selectedIndexToReplace = null) {
@@ -63,10 +74,10 @@ class Pokeman {
 }
 
 class Skill {
-  constructor(name, type, damage, accuracy, attributeModifier) {
+  constructor(name, type, power, accuracy, attributeModifier) {
     this.name = name;
     this.type = type;
-    this.damage = damage;
+    this.power = power;
     this.accuracy = accuracy;
     this.attributeModifier = attributeModifier;
   }
@@ -112,9 +123,9 @@ let solarBeam = new Skill('Solar Beam', grass, 150, 100, 'spec');
 let tackle = new Skill('Tackle', normal, 35, 100, 'phys');
 let scratch = new Skill('Scratch', normal, 40, 100, 'phys');
 
-let bulbasaur = new Pokeman('Bulbasaur', 1, [vineWhip], grass, {hp: 100, attack: 20, defense: 35, specialAttack: 30, specialDefense: 25, speed: 25}, {hp: 2, attack: 1, defense: 4, specialAttack: 3, specialDefense: 2, speed: 2});
-let squirtle = new Pokeman('Squirtle', 1, [tackle], grass, {hp: 100, attack: 20, defense: 35, specialAttack: 20, specialDefense: 30, speed: 35});
-let charmander = new Pokeman('Charmander', 1, [scratch], fire, {hp: 100, attack: 20, defense: 20, specialAttack: 40, specialDefense: 25, speed: 30});
+let bulbasaur = new Pokeman('Bulbasaur', 1, [vineWhip], grass, {hp: 16, attack: 4, defense: 6, specialAttack: 5, specialDefense: 4, speed: 3}, {hp: 5, attack: 1, defense: 3, specialAttack: 2, specialDefense: 3, speed: 2});
+let squirtle = new Pokeman('Squirtle', 1, [tackle], grass, {hp: 17, attack: 2, defense: 6, specialAttack: 4, specialDefense: 5, speed: 5}, {hp: 5, attack: 1, defense: 3, specialAttack: 2, specialDefense: 2, speed: 3});
+let charmander = new Pokeman('Charmander', 1, [scratch], fire, {hp: 15, attack: 2, defense: 2, specialAttack: 6, specialDefense: 3, speed: 4});
 
 
 bulbasaur.learnSkill(leechSeed);
@@ -123,5 +134,6 @@ bulbasaur.useSkill(3);
 bulbasaur.learnSkill(razorLeaf);
 bulbasaur.learnSkill(solarBeam, 3);
 
-bulbasaur.useSkill(1, squirtle);
-bulbasaur.setLevel(6);
+squirtle.setLevel(6);
+bulbasaur.setLevel(10);
+bulbasaur.useSkill(4, squirtle);
